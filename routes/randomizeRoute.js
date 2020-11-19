@@ -48,7 +48,7 @@ module.exports = (app) => {
         let usersLeft = JSON.parse(JSON.stringify(users));
         for (let user of users) {
             for (let i = 0; i < data.length; i++) {
-                if (!data[i].presenter && data[i].author !== user) {
+                if (!data[i].presenter /* && data[i].author !== user */) {
                     data[i].presenter = user;
 
                     for (let u of req.body.users) {
