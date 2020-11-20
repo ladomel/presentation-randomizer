@@ -8,15 +8,16 @@ import DialogContent from "@material-ui/core/DialogContent";
 import DialogActions from "@material-ui/core/DialogActions";
 import DialogContentText from "@material-ui/core/DialogContentText";
 import randomizeService from "../services/randomizeService";
-import {withAuth} from "@okta/okta-react";
+import Cookies from 'universal-cookie';
 
-export default withAuth(class RandomizeDialog extends Component {
+export default class RandomizeDialog extends Component {
     constructor(props) {
        super(props);
 
        this.state = {
            users: [],
-           loading: false
+           loading: false,
+           token: new Cookies().get('auth_token')
        }
     }
 
@@ -29,16 +30,14 @@ export default withAuth(class RandomizeDialog extends Component {
             users: this.state.users
         };
 
-        this.props.auth.getAccessToken().then(token =>
-            randomizeService.randomize(token, data).then(json => {
-                if (json.success) {
-                    this.props.onRandomize();
-                    this.setState({
-                        loading: false
-                    });
-                }
+        randomizeService.randomize(this.state.token, data).then(json => {
+            if (json.success) {
+                this.props.onRandomize();
+                this.setState({
+                    loading: false
+                });
             }
-        ));
+        });
     };
 
     handleCancel = () => {
@@ -75,10 +74,4 @@ export default withAuth(class RandomizeDialog extends Component {
             </Dialog>
         );
     }
-});
-
-// RandomizeDialog.propTypes = {
-//     onClose: PropTypes.func.isRequired,
-//     open: PropTypes.bool.isRequired,
-// }
-
+};

@@ -1,12 +1,8 @@
 import axios from 'axios';
 
 export default {
-    load: async (token) => {
-        let res = await axios.get(`/api/thesis`,{
-            headers: {
-                'Authorization': `Bearer ${token}`
-            }
-        });
+    load: async () => {
+        let res = await axios.get(`/api/thesis`);
         return res.data || [];
     },
 

@@ -5,19 +5,20 @@ import ListItemSecondaryAction from '@material-ui/core/ListItemSecondaryAction';
 import ListItemText from '@material-ui/core/ListItemText';
 import Checkbox from '@material-ui/core/Checkbox';
 import userService from "../services/userService";
-import {withAuth} from "@okta/okta-react";
+import Cookies from 'universal-cookie';
 
-export default withAuth(class UserGrid extends Component {
+export default class UserGrid extends Component {
     constructor(props) {
         super(props);
 
         this.state = {
             data: [],
             checked: [],
-            loading: true
+            loading: true,
+            token: new Cookies().get('auth_token')
         };
 
-        this.props.auth.getAccessToken().then(token => userService.load(token).then(data => {
+        userService.load(this.state.token).then(data => {
             for (let i = 0; i < data.length; i++) {
                 data[i]['id'] = i;
                 this.state.checked.push(true);
@@ -26,7 +27,7 @@ export default withAuth(class UserGrid extends Component {
                 data: data,
                 loading: false
             }, this.onSelectionChange)
-        }));
+        });
     }
 
     onSelectionChange = () => {
@@ -67,4 +68,4 @@ export default withAuth(class UserGrid extends Component {
             </List>
         );
     }
-})
+}

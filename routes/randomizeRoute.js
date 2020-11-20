@@ -48,7 +48,7 @@ module.exports = (app) => {
         let usersLeft = JSON.parse(JSON.stringify(users));
         for (let user of users) {
             for (let i = 0; i < data.length; i++) {
-                if (!data[i].presenter && data[i].author !== user) {
+                if (!data[i].presenter) {
                     data[i].presenter = user;
 
                     for (let u of req.body.users) {
@@ -85,7 +85,7 @@ module.exports = (app) => {
 
         // send mails
         for (let i of data) {
-            mailUtil.sendEmail(i.presenter, "Presentation", 'Your Thesis: ' + i.thesis_desc);
+            mailUtil.sendEmail(i.presenter, "Presentation", 'Your Presentation Subject: ' + i.thesis_desc);
         }
 
         return res.status(200).send({

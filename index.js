@@ -1,6 +1,7 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
+const {OAuth2Client} = require('google-auth-library');
 require('dotenv/config');
 
 if (process.env.NODE_ENV !== 'production') require('dotenv').config();
@@ -8,25 +9,44 @@ if (process.env.NODE_ENV !== 'production') require('dotenv').config();
 // IMPORT MODELS
 require('./models/Thesis');
 require('./models/Rating');
+require('./models/User');
+
+const User = mongoose.model('user');
 
 const app = express();
 
-const OktaJwtVerifier = require('@okta/jwt-verifier');
-
-const oktaJwtVerifier = new OktaJwtVerifier({
-  issuer: process.env.OKTA_ISSUER,
-  clientId: process.env.OKTA_CLIENT_ID
-});
+console.log(process.env.CLIENT_ID)
+const client = new OAuth2Client(process.env.CLIENT_ID);
+async function verify(token) {
+  const ticket = await client.verifyIdToken({
+      idToken: token,
+      audience: process.env.CLIENT_ID
+  });
+  return ticket.getPayload();
+}
 
 app.use(async (req, res, next) => {
   try {
-    if (req.url.startsWith('/api')) {
+    if (req.url.startsWith('/api') && !(req.url === '/api/thesis' && req.method === 'GET')) {
       if (!req.headers.authorization) {
         throw new Error('Authorization header is required');
       }
 
-      const accessToken = req.headers.authorization.trim().split(' ')[1];
-      await oktaJwtVerifier.verifyAccessToken(accessToken, 'api://default');
+      const token = req.headers.authorization.trim().split(' ')[1];
+      const user = await verify(token);
+      if (user && user.email) {
+        req.userData = {
+          email: user.email,
+          name: user.name
+        }
+
+        let existingUser = await User.find({email: user.email});
+        if (existingUser.length == 0) {
+          await User.create(req.userData);
+        }
+      } else {
+        throw new Error('Couldn\'t identify user');
+      }
     }
     next();
   } catch (error) {

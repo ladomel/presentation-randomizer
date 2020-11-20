@@ -19,6 +19,8 @@ module.exports = (app) => {
   });
 
   app.post(`/api/thesis`, async (req, res) => {
+    req.body['author'] = req.userData.email;
+    req.body['author_name'] = req.userData.name;
     let thesis = await Thesis.create(req.body);
     return res.status(201).send({
       success: true,
